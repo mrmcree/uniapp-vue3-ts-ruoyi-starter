@@ -92,7 +92,7 @@ export class HttpRequest {
             }
         },
         // 响应拦截
-        response: (cb: (response: ResponseResult) => ResponseResult, ecb: (response: ResponseResult) => ResponseResult) => {
+        response: (cb: (response: ResponseResult) => (ResponseResult | boolean), ecb: (response: ResponseResult) => (ResponseResult | boolean)) => {
             if (cb) {
                 this.requestComFun = cb
             }
@@ -106,11 +106,11 @@ export class HttpRequest {
         return config
     }
 
-    requestComFun = (response: ResponseResult) => {
+    requestComFun: (response: ResponseResult) => (ResponseResult | boolean) = (response: ResponseResult ) => {
         return response
     }
 
-    requestComFail = (response: ResponseResult) => {
+    requestComFail: (response: ResponseResult) => (ResponseResult | boolean) = (response: ResponseResult ) => {
         return response
     }
 
@@ -122,16 +122,16 @@ export class HttpRequest {
         if (this.defaultConfig.showLog) {
             httpLog.start(options)
         }
-
         return new Promise<any>((resolve, reject) => {
             const ops = this.requestBeforeFun(options)
+            const isNeedToken= options?.isNeedToken ?? true
             options = {
                 ...this.defaultConfig,
                 ...options,
                 ...ops,
                 header: {
                     ...options.header,
-                    Authorization: options.isNeedToken ? options.header.Authorization : '',
+                    Authorization: isNeedToken ? this.defaultConfig.header.Authorization : '',
                 },
             }
             // console.log(this.defaultConfig,options)
@@ -139,12 +139,18 @@ export class HttpRequest {
                 this.loadingBox = showLoading()
             }
             options.url = this.defaultConfig.baseUrl + options.url
-            options.success = (response: ResponseResult) => {
+            options.success = (response: ResponseResult | boolean ) => {
                 if (this.defaultConfig.showLog) {
                     httpLog.endSuccess(options, response)
                 }
-                response = this.requestComFun(response)
-                resolve(response)
+                response = this.requestComFun(<ResponseResult<any>>response)
+                console.log(response)
+                if(typeof response !="boolean"){
+                    resolve(response)
+                }else {
+                    reject()
+                }
+
             }
             options.fail = (response: any) => {
                 if (this.defaultConfig.showLog) {

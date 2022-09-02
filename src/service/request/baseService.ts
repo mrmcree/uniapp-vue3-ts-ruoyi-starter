@@ -1,6 +1,11 @@
 import request from '@/service/request/index'
 
 // import {RequestOptions} from "@/service/request/request";
+export interface Response{
+  code:number,
+  msg:number,
+  [key:string]:any
+}
 export interface ListResponse {
   code?: number
   msg?: string

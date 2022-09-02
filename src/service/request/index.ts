@@ -1,8 +1,12 @@
+import {Modal} from "@/plugins/Modal";
 import type { RequestOptions, ResponseResult } from '@/service/request/request'
 import { HttpRequest, Log } from '@/service/request/request'
 import { REFRESH_CONFIG, getServiceEnvConfig } from '@/config'
-import { TOAST_SHOW_INFO } from '@/utils'
-import { getToken } from '@/utils/cache'
+import {useUserStore} from "@/store";
+import {Navigate} from '@/utils'
+import { getToken } from '@/utils/Storage'
+type userStore= ReturnType<typeof  useUserStore>
+let UserStore:userStore | null =null
 // import {requestInterceptor, responseInterceptor} from "@/service/request/interceptors";
 const { url } = getServiceEnvConfig(import.meta.env)
 Log.warn('当前环境', url)
@@ -15,20 +19,30 @@ request.interceptor.request((request: RequestOptions) => {
 })
 
 // 响应拦截器
-request.interceptor.response((response: ResponseResult) => {
-  // console.log(response)
-  if (response.statusCode === 200) {
+request.interceptor.response((response: ResponseResult ) => {
+  if (response.data.code === 200) {
     return response
-  } else if (response.statusCode === 401) {
-    TOAST_SHOW_INFO('token超时')
-    return response
+  } else if (response.data.code === 401) {
+    if(UserStore===null){
+      UserStore=useUserStore()
+    }
+    Modal.confirm('登录状态已过期，您可以继续留在该页面，或者重新登录?').then(res => {
+      if(res){
+        UserStore!.LogOut().then(()=>{
+          Navigate.reLaunch('/pages/login')
+        })
+
+      }
+    })
+    return false
   } else {
-    // TOAST_SHOW_INFO(response.data?.msg || '服务器错误')
-    return response
+    Modal.showToast(response.data?.msg || '服务器错误')
+    return false
   }
-}, (response: any) => {
-  TOAST_SHOW_INFO('网络错误请重试')
-  return response
+
+}, (response: ResponseResult) => {
+  Modal.showToast('网络错误请重试')
+  return false
 })
 
 // 设置默认配置

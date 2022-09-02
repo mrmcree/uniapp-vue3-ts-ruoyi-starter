@@ -15,3 +15,4 @@ interface ServiceEnvConfig {
 interface ImportMetaEnv {
   readonly VITE_SERVICE_ENV?: ServiceEnvType;
 }
+

@@ -1,4 +1,4 @@
-import { injectUrl } from '@/service/request/baseService'
+import {injectUrl, Response} from '@/service/request/baseService'
 import request from '@/service/request'
 
 export interface User {
@@ -14,7 +14,7 @@ export type loginParams=  Omit<User,'oldPassword' | 'newPassword'>
 export class LoginService {
   // 用户密码重置
   static login(data:loginParams) {
-    return request.post<{code:number,msg:string,token:string}>({
+    return request.post<Response | {token:string}>({
       url: '/login',
       isNeedToken: false,
       data,
@@ -29,8 +29,8 @@ export class LoginService {
   }
 
   // 获取验证码
-  static getCodeImg(): Promise<any> {
-    return request.get({
+  static getCodeImg(){
+    return request.get<Response |{ uuid:string,img:string,captchaOnOff:boolean}>({
       url: '/captchaImage',
       isNeedToken: false,
       timeout: 20000,

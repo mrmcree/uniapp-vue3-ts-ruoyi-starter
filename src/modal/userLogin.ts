@@ -1,7 +1,7 @@
 import { LoginService } from '@/service/api/login'
-import Modal from '@/plugins/Modal'
-import { NAV_TO } from '@/utils'
-import {useUserStore} from "@/store";
+import {Modal} from '@/plugins/Modal'
+import { Navigate} from '@/utils'
+import {useUserStore} from '@/store';
 const UserStore=useUserStore()
 export const loginForm = reactive({
   username: '',
@@ -14,14 +14,15 @@ export const codeUrl = ref('')
 export const captchaEnabled = ref(false)
 
 // 密码登录
-export const pwdLogin = () => {
-  UserStore.Login(loginForm)
+export const pwdLogin = async () => {
+  await UserStore.Login(loginForm)
+  Navigate.reLaunch('/pages/index')
 }
 // 获取图形验证码
 export const getCode = async () => {
   const res = await LoginService.getCodeImg()
-  codeUrl.value = `data:image/gif;base64,${res.img}`
-  loginForm.uuid = res.uuid
+  codeUrl.value = `data:image/gif;base64,${res.data.img}`
+  loginForm.uuid = res.data.uuid
 }
 // 登录方法
 export const handleLogin = async () => {
@@ -39,10 +40,10 @@ export const handleLogin = async () => {
 }
 // 隐私协议
 export const handleUserAgreement = () => {
-  NAV_TO({ url: '/pages/common/webview/index' })
+  Navigate.to('/pages/common/webview/index' )
 }
 // 用户协议
 export const handlePrivacy = () => {
-  NAV_TO({ url: '/pages/common/webview/index' })
+  Navigate.to( '/pages/common/webview/index' )
 }
 
