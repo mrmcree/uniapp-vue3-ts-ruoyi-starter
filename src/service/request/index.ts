@@ -1,4 +1,4 @@
-import type { RequestOptions, RequestSuccessCallbackResult } from '@/service/request/request'
+import type { RequestOptions, ResponseResult } from '@/service/request/request'
 import { HttpRequest, Log } from '@/service/request/request'
 import { REFRESH_CONFIG, getServiceEnvConfig } from '@/config'
 import { TOAST_SHOW_INFO } from '@/utils'
@@ -15,16 +15,18 @@ request.interceptor.request((request: RequestOptions) => {
 })
 
 // 响应拦截器
-request.interceptor.response((response: RequestSuccessCallbackResult) => {
+request.interceptor.response((response: ResponseResult) => {
   // console.log(response)
   if (response.statusCode === 200) {
-    return response.data
+    return response
   } else if (response.statusCode === 401) {
     TOAST_SHOW_INFO('token超时')
+    return response
   } else {
-    TOAST_SHOW_INFO(response.data?.msg || '服务器错误')
+    // TOAST_SHOW_INFO(response.data?.msg || '服务器错误')
+    return response
   }
-}, (response: RequestSuccessCallbackResult) => {
+}, (response: any) => {
   TOAST_SHOW_INFO('网络错误请重试')
   return response
 })

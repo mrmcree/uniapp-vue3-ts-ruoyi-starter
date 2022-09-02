@@ -59,4 +59,5 @@ export const REFRESH_CONFIG: RequestOptions = {
   timeout: 30000,
   ShowErrMsg: true,
   showLog: true,
+  isNeedToken: true,
 }

@@ -23,7 +23,7 @@ interface pageParameter {
   pageSize: number
 }
 type page = { pageNum: number } | { pageSize: number } | Parameter
-type getListParams<T> = T extends page ? pageParameter : Parameter
+// type getListParams<T> = T extends page ? pageParameter : Parameter
 
 export interface RequestOptions {
   _name?: string

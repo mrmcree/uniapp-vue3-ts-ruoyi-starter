@@ -3,7 +3,7 @@ type ServiceEnv = Record<ServiceEnvType, ServiceEnvConfig>
 
 const serviceEnv: ServiceEnv = {
   dev: {
-    url: 'http://192.168.22.148:8080',
+    url: 'http://192.168.22.227:9091',
   },
   test: {
     url: 'http://192.168.22.148:8080',
