@@ -3,6 +3,8 @@
  * @param tips 提示语句
  * @returns 关闭loading
  */
+import {InterceptorsManager} from "@/service/request/interceptorsManager";
+
 export const showLoading = (tips = '加载中...'): (null) => {
     uni.showLoading({
         title: tips,
@@ -70,11 +72,6 @@ export class HttpRequest {
     loadingBox: null | (() => null) = null
     // 默认项
     private defaultConfig: RequestOptions
-
-    constructor(options: RequestOptions) {
-        this.defaultConfig = options
-    }
-
     /**
      * @description 默认配置
      */
@@ -84,79 +81,105 @@ export class HttpRequest {
      * @property {Function} response 响应拦截器
      * @type {{request: Request.interceptor.request, response: Request.interceptor.response}}
      */
-    interceptor = {
+    interceptors = {
         // 请求拦截
-        request: (cb: (config: RequestOptions) => RequestOptions) => {
-            if (cb) {
-                this.requestBeforeFun = cb
-            }
-        },
+        request: new InterceptorsManager,
         // 响应拦截
-        response: (cb: (response: ResponseResult) => (ResponseResult | boolean), ecb: (response: ResponseResult) => (ResponseResult | boolean)) => {
-            if (cb) {
-                this.requestComFun = cb
-            }
-            if (ecb) {
-                this.requestComFail = ecb
-            }
-        },
+        response: new InterceptorsManager
     }
 
-    requestBeforeFun = (config: RequestOptions) => {
-        return config
-    }
-
-    requestComFun: (response: ResponseResult) => (ResponseResult | boolean) = (response: ResponseResult ) => {
-        return response
-    }
-
-    requestComFail: (response: ResponseResult) => (ResponseResult | boolean) = (response: ResponseResult ) => {
-        return response
+    constructor(options: RequestOptions) {
+        this.defaultConfig = options
     }
 
     setConfig(func: Function) {
         this.defaultConfig = func(this.defaultConfig)
     }
 
-    async request(options: RequestOptions) {
+    async request(options: RequestOptions) :Promise<any>{
         if (this.defaultConfig.showLog) {
             httpLog.start(options)
         }
-        return new Promise<any>((resolve, reject) => {
-            const ops = this.requestBeforeFun(options)
-            const isNeedToken= options?.isNeedToken ?? true
+        options = {...this.defaultConfig, ...options}
+        // let promise = Promise.resolve(options)
+        // this.interceptor.request.handlers.forEach(handle => {
+        //     promise = promise.then(handle.resolveHandle, handle.rejectHandle)
+        // })
+        // // @ts-ignore
+        // promise = promise.then((options)=>this.dispatch(options), undefined)
+        // this.interceptor.response.handlers.forEach(handle => {
+        //     promise = promise.then(handle.resolveHandle, handle.rejectHandle)
+        // })
+        let requestInterceptorChain = [] as Array<any>;
+        this.interceptors.request.forEach(function unshiftRequestInterceptors(interceptor:any) {
+
+            requestInterceptorChain.unshift(interceptor.fulfilled, interceptor.rejected);
+        });
+
+        let responseInterceptorChain = [] as Array<any>;
+        this.interceptors.response.forEach(function pushResponseInterceptors(interceptor:any) {
+            responseInterceptorChain.push(interceptor.fulfilled, interceptor.rejected);
+        });
+
+        let promise;
+
+        let newConfig = options;
+        while (requestInterceptorChain.length) {
+            let onFulfilled = requestInterceptorChain.shift();
+            let onRejected = requestInterceptorChain.shift();
+            try {
+                newConfig = onFulfilled(newConfig);
+            } catch (error) {
+                onRejected(error);
+                break;
+            }
+        }
+
+        try {
+            promise = this.dispatchRequest(newConfig);
+        } catch (error) {
+            return Promise.reject(error);
+        }
+
+        while (responseInterceptorChain.length) {
+            promise = promise.then(responseInterceptorChain.shift(), responseInterceptorChain.shift());
+        }
+
+        return promise;
+
+    }
+
+    dispatchRequest<T>(options: RequestOptions) :Promise<T>{
+        console.log(this)
+        return new Promise((resolve, reject) => {
+
+            const isNeedToken = options?.isNeedToken ?? true
+
             options = {
-                ...this.defaultConfig,
                 ...options,
-                ...ops,
                 header: {
                     ...options.header,
-                    Authorization: isNeedToken ? this.defaultConfig.header.Authorization : '',
+                    Authorization: isNeedToken ? options.header.Authorization : '',
                 },
             }
             // console.log(this.defaultConfig,options)
             if (options.loading) {
                 this.loadingBox = showLoading()
             }
-            options.url = this.defaultConfig.baseUrl + options.url
-            options.success = (response: ResponseResult | boolean ) => {
-                if (this.defaultConfig.showLog) {
+            options.url = options.baseUrl + options.url
+            options.success = (response: any) => {
+
+                resolve(response)
+                if (options.showLog) {
                     httpLog.endSuccess(options, response)
-                }
-                response = this.requestComFun(<ResponseResult<any>>response)
-                console.log(response)
-                if(typeof response !="boolean"){
-                    resolve(response)
-                }else {
-                    reject()
                 }
 
             }
             options.fail = (response: any) => {
-                if (this.defaultConfig.showLog) {
+                if (options.showLog) {
                     httpLog.endFail(options, response)
                 }
-                response = this.requestComFail(response)
+
                 reject(response)
             }
             options.complete = () => {
@@ -169,7 +192,6 @@ export class HttpRequest {
             const requestTask = uni.request(<UniNamespace.RequestOptions>options)
             this.taskMap.set(options.url, requestTask)
             options.getTask && options.getTask(requestTask, options)
-            // console.log(this.taskMap)
         })
     }
 
@@ -207,14 +229,12 @@ export class HttpRequest {
                     if (this.defaultConfig.showLog) {
                         httpLog.endSuccess(options, response)
                     }
-                    response = this.requestComFun(response)
                     resolve(response)
                 },
                 fail: (response: any) => {
                     if (this.defaultConfig.showLog) {
                         httpLog.endFail(options, response)
                     }
-                    response = this.requestComFail(response)
                     reject(response)
                 },
 
@@ -232,14 +252,12 @@ export class HttpRequest {
                     if (this.defaultConfig.showLog) {
                         httpLog.endSuccess(options, response)
                     }
-                    response = this.requestComFun(response)
                     resolve(response)
                 },
                 fail: (response: any) => {
                     if (this.defaultConfig.showLog) {
                         httpLog.endFail(options, response)
                     }
-                    response = this.requestComFail(response)
                     reject(response)
                 },
             })

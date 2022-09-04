@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import uniBadge from '@dcloudio/uni-ui/lib/uni-badge/uni-badge.vue'
-import { captchaEnabled, codeUrl, getCode, handleLogin, handlePrivacy, handleUserAgreement, loginForm } from '@/modal/userLogin'
+import { captchaEnabled, codeUrl, getCode, handleLogin, handlePrivacy, handleUserAgreement, loginForm } from '@/modal/useLogin'
 import { LoginService } from '@/service/api/login'
 
 onLoad(async () => {

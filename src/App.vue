@@ -14,6 +14,7 @@ const initApp=()=>{
   //#endif
 }
 onLaunch(() => {
+  initApp()
   console.log('App Launch')
 })
 onShow(() => {

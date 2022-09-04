@@ -15,7 +15,10 @@ export const captchaEnabled = ref(false)
 
 // 密码登录
 export const pwdLogin = async () => {
-  await UserStore.Login(loginForm)
+  await UserStore.Login(loginForm).catch(err=>{
+    console.log(err)
+  })
+  console.log('ddd')
   Navigate.reLaunch('/pages/index')
 }
 // 获取图形验证码

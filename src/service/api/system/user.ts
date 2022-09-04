@@ -44,7 +44,7 @@ export class UserService extends BaseService {
 
     // 获取用户详细信息
     static getUserInfo() {
-        return request.get<User>({
+        return request.get<any>({
             url: '/getInfo',
         })
     }
