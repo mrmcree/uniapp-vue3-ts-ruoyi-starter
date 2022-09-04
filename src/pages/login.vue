@@ -4,31 +4,31 @@ import {Modal} from '@/plugins/Modal'
 import { Navigate} from '@/utils'
 import {useUserStore} from '@/store';
 const UserStore=useUserStore()
-export const loginForm = reactive({
+ const loginForm = reactive({
   username: '',
   password: '',
   code: '',
   uuid: '',
 })
 
-export const codeUrl = ref('')
-export const captchaEnabled = ref(false)
+ const codeUrl = ref('')
+ const captchaEnabled = ref(false)
 
 // 密码登录
-export const pwdLogin = async () => {
+ const pwdLogin = async () => {
   await UserStore.Login(loginForm).catch(err=>{
     console.log(err)
   })
   Navigate.reLaunch('/pages/index')
 }
 // 获取图形验证码
-export const getCode = async () => {
+ const getCode = async () => {
   const res = await LoginService.getCodeImg()
   codeUrl.value = `data:image/gif;base64,${res.data.img}`
   loginForm.uuid = res.data.uuid
 }
 // 登录方法
-export const handleLogin = async () => {
+ const handleLogin = async () => {
   if (loginForm.username === '') {
     Modal.msgError('请输入您的账号')
   } else if (loginForm.password === '') {
@@ -42,11 +42,11 @@ export const handleLogin = async () => {
   }
 }
 // 隐私协议
-export const handleUserAgreement = () => {
+ const handleUserAgreement = () => {
   Navigate.to('/pages/common/webview/index' )
 }
 // 用户协议
-export const handlePrivacy = () => {
+ const handlePrivacy = () => {
   Navigate.to( '/pages/common/webview/index' )
 }
 
