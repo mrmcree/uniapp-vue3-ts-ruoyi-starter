@@ -1,7 +1,56 @@
 <script setup lang="ts">
-import uniBadge from '@dcloudio/uni-ui/lib/uni-badge/uni-badge.vue'
-import { captchaEnabled, codeUrl, getCode, handleLogin, handlePrivacy, handleUserAgreement, loginForm } from '@/modal/useLogin'
 import { LoginService } from '@/service/api/login'
+import {Modal} from '@/plugins/Modal'
+import { Navigate} from '@/utils'
+import {useUserStore} from '@/store';
+const UserStore=useUserStore()
+export const loginForm = reactive({
+  username: '',
+  password: '',
+  code: '',
+  uuid: '',
+})
+
+export const codeUrl = ref('')
+export const captchaEnabled = ref(false)
+
+// 密码登录
+export const pwdLogin = async () => {
+  await UserStore.Login(loginForm).catch(err=>{
+    console.log(err)
+  })
+  Navigate.reLaunch('/pages/index')
+}
+// 获取图形验证码
+export const getCode = async () => {
+  const res = await LoginService.getCodeImg()
+  codeUrl.value = `data:image/gif;base64,${res.data.img}`
+  loginForm.uuid = res.data.uuid
+}
+// 登录方法
+export const handleLogin = async () => {
+  if (loginForm.username === '') {
+    Modal.msgError('请输入您的账号')
+  } else if (loginForm.password === '') {
+    Modal.msgError('请输入您的密码')
+  } else if (loginForm.code === '' && captchaEnabled.value) {
+    Modal.msgError('请输入验证码')
+  } else {
+    Modal.loading('登录中，请耐心等待...')
+
+    pwdLogin()
+  }
+}
+// 隐私协议
+export const handleUserAgreement = () => {
+  Navigate.to('/pages/common/webview/index' )
+}
+// 用户协议
+export const handlePrivacy = () => {
+  Navigate.to( '/pages/common/webview/index' )
+}
+
+
 
 onLoad(async () => {
   getCode()
@@ -34,7 +83,7 @@ onLoad(async () => {
         <image :src="codeUrl" class="login-code-img" @click="getCode" />
       </view>
       <view class="action-btn">
-        <button class="login-btn cu-btn block bg-blue lg round" @click="handleLogin">
+        <button class="login-btn text-white bg-blue " @click="handleLogin">
           登录
         </button>
       </view>
@@ -79,14 +128,14 @@ page {
 
   .login-form-content {
     text-align: center;
-    margin: 20px auto;
-    margin-top: 15%;
+    margin: 15% auto 20px;
     width: 80%;
 
     .input-item {
       margin: 20px auto;
       background-color: #f5f6f7;
       height: 45px;
+      line-height: 45px;
       border-radius: 20px;
 
       .icon {
@@ -97,8 +146,9 @@ page {
 
       .input {
         width: 100%;
+        height: 100%;
         font-size: 14px;
-        line-height: 20px;
+        line-height: 45px;
         text-align: left;
         padding-left: 15px;
       }
