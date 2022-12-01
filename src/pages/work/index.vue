@@ -42,7 +42,7 @@ const changeGrid=()=>{
       <!-- 宫格组件 -->
       <uni-section title="系统管理" type="line"></uni-section>
       <view class="grid-body">
-        <uni-grid :column="4" :showBorder="false" @change="changeGrid">
+        <uni-grid :column="4" :showBorder="false" @change="changeGrid" :highlight="true">
           <uni-grid-item>
             <view class="grid-item-box">
               <uni-icons type="person-filled" size="30"></uni-icons>

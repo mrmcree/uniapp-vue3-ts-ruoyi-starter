@@ -2,7 +2,7 @@
 import {Modal} from "@/plugins/Modal";
 import {useUserStore} from "@/store";
 import {Navigate} from "@/utils";
-import Storage from "@/utils/Storage";
+import Storage from "@/modal/useStorage";
 const UserStore =useUserStore()
 const windowHeight=ref(0)
 onShow(()=>{

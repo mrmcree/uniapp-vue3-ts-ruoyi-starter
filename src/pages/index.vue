@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import uniBadge from '@dcloudio/uni-ui/lib/uni-badge/uni-badge.vue'
-
-import { UserService } from '@/service/api/system/user'
-
 const title = ref('Hello')
 
 onShow(async () => {
@@ -31,10 +27,7 @@ onShow(async () => {
 .logo {
   height: 200rpx;
   width: 200rpx;
-  margin-top: 200rpx;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 50rpx;
+    margin: 200 rpx auto 50 rpx;
 }
 
 .text-area {
